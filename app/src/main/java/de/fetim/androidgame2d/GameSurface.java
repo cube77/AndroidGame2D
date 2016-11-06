@@ -8,17 +8,19 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
+import java.util.ArrayList;
+import java.util.List;
 
+public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
 
     private GameThread gameThread;
 
-    private ChibiCharacter chibi1;
+    private final List<ChibiCharacter> chibiList = new ArrayList<ChibiCharacter>();
 
     public GameSurface(Context context)  {
         super(context);
 
-        // Make Game Surface focusable so it can handle events. .
+        // Make Game Surface focusable so it can handle events.
         this.setFocusable(true);
 
         // Sét callback.
@@ -26,39 +28,48 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     public void update()  {
-        this.chibi1.update();
+        for(ChibiCharacter chibi: chibiList) {
+            chibi.update();
+        }
     }
 
-
-    //Next, you can handle events when the user touches the screen, the game character will
-    // run towards that you touched. You should handle this event on GameSurface class
+    @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             int x=  (int)event.getX();
             int y = (int)event.getY();
 
-            int movingVectorX =x-  this.chibi1.getX() ;
-            int movingVectorY =y-  this.chibi1.getY() ;
-
-            this.chibi1.setMovingVector(movingVectorX,movingVectorY);
+            for(ChibiCharacter chibi: chibiList) {
+                int movingVectorX =x-  chibi.getX() ;
+                int movingVectorY =y-  chibi.getY() ;
+                chibi.setMovingVector(movingVectorX, movingVectorY);
+            }
             return true;
         }
         return false;
     }
 
-
     @Override
     public void draw(Canvas canvas)  {
         super.draw(canvas);
 
-        this.chibi1.draw(canvas);
+        for(ChibiCharacter chibi: chibiList)  {
+            chibi.draw(canvas);
+        }
+
     }
 
     // Implements method of SurfaceHolder.Callback
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
         Bitmap chibiBitmap1 = BitmapFactory.decodeResource(this.getResources(),R.drawable.chibi1);
-        this.chibi1 = new ChibiCharacter(this,chibiBitmap1,100,50);
+        ChibiCharacter chibi1 = new ChibiCharacter(this,chibiBitmap1,100,50);
+
+        Bitmap chibiBitmap2 = BitmapFactory.decodeResource(this.getResources(),R.drawable.chibi2);
+        ChibiCharacter chibi2 = new ChibiCharacter(this,chibiBitmap2,300,150);
+
+        this.chibiList.add(chibi1);
+        this.chibiList.add(chibi2);
 
         this.gameThread = new GameThread(this,holder);
         this.gameThread.setRunning(true);
