@@ -30,6 +30,22 @@ public class GameSurface extends SurfaceView implements SurfaceHolder.Callback {
     }
 
 
+    //Next, you can handle events when the user touches the screen, the game character will
+    // run towards that you touched. You should handle this event on GameSurface class
+    public boolean onTouchEvent(MotionEvent event) {
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            int x=  (int)event.getX();
+            int y = (int)event.getY();
+
+            int movingVectorX =x-  this.chibi1.getX() ;
+            int movingVectorY =y-  this.chibi1.getY() ;
+
+            this.chibi1.setMovingVector(movingVectorX,movingVectorY);
+            return true;
+        }
+        return false;
+    }
+
 
     @Override
     public void draw(Canvas canvas)  {
