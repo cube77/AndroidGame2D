@@ -3,6 +3,8 @@ package de.fetim.androidgame2d;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 
 public class ChibiCharacter extends GameObject {
 
@@ -22,10 +24,28 @@ public class ChibiCharacter extends GameObject {
     private Bitmap[] bottomToTops;
 
     // Velocity of game character (pixel/millisecond)
-    public static final float VELOCITY = 0.1f;
+    public static final float VELOCITY = 0.3f;
 
     private int movingVectorX = 10;
     private int movingVectorY = 5;
+
+    // Joystick parameters
+    private int CircleX;
+    private int CircleY;
+
+    private int XTouchVectorLength;
+    private int YTouchVectorLength;
+    private float LengthOfTouchVector;
+
+    private int JoystickCircleRadius = 250; // radius of the JoystickCirce in Pixel
+
+    private int TouchX;
+    private int TouchY;
+
+    private float JoystickX;
+    private float JoystickY;
+
+
 
     private long lastDrawNanoTime =-1;
 
@@ -47,6 +67,18 @@ public class ChibiCharacter extends GameObject {
             this.leftToRights[col] = this.createSubImageAt(ROW_LEFT_TO_RIGHT, col);
             this.bottomToTops[col]  = this.createSubImageAt(ROW_BOTTOM_TO_TOP, col);
         }
+
+        //initialize Joystick parameters
+        TouchX = 0;
+        TouchY = 0;
+        JoystickX = 0;
+        JoystickY = 0;
+        this.CircleX = 2300;//this.gameSurface.getWidth()/2;
+        this.CircleY = 1150;//this.gameSurface.getHeight()/2;
+        this.XTouchVectorLength = 0;
+        this.YTouchVectorLength = 0;
+        this.LengthOfTouchVector = 10;
+
     }
 
     public Bitmap[] getMoveBitmaps()  {
@@ -135,6 +167,65 @@ public class ChibiCharacter extends GameObject {
     public void draw(Canvas canvas)  {
         Bitmap bitmap = this.getCurrentMoveBitmap();
         canvas.drawBitmap(bitmap,x, y, null);
+
+
+        // draw a circle
+        Paint paint = new Paint();
+        paint.setStyle(Paint.Style.FILL);
+
+        paint.setColor(Color.RED);
+        canvas.drawCircle(CircleX,
+                          CircleY,
+                          JoystickCircleRadius,
+                          paint);
+
+        paint.setColor(Color.WHITE);
+        canvas.drawCircle(CircleX,
+                          CircleY,
+                          20,
+                          paint);
+
+        // draw the small Joystick circle
+        paint.setColor(Color.WHITE);
+        canvas.drawCircle(this.JoystickX,
+                          this.JoystickY,
+                          20,
+                          paint);
+        // draw debug text
+        String txt = "X-Koord: "+ this.gameSurface.getWidth() + " Y-Koord: " + this.gameSurface.getHeight();
+        paint.setColor(Color.RED);
+        paint.setTextSize(40);
+
+        canvas.drawText(
+                txt,
+                0,
+                (this.gameSurface.getHeight()/10)*7,
+                paint // Paint
+        );
+
+        txt = "Touch Coordinates X=" + this.TouchX + " Y=" + this.TouchY + " Version 9";
+        canvas.drawText(
+                txt,
+                0,
+                (this.gameSurface.getHeight()/10)*8,
+                paint // Paint
+                );
+
+        txt = "XTouchVectorLength=" + this.XTouchVectorLength + " YTouchVectorLength= " + this.YTouchVectorLength + "VectorLength = " + this.LengthOfTouchVector;
+        canvas.drawText(
+                txt,
+                0,
+                (this.gameSurface.getHeight()/10)*9,
+                paint // Paint
+        );
+
+        txt = "JoystickX=" + this.JoystickX + " JoystickY=" + this.JoystickY ;
+        canvas.drawText(
+                txt,
+                0,
+                (this.gameSurface.getHeight()/10)*10,
+                paint //
+        );
         // Last draw time.
         this.lastDrawNanoTime= System.nanoTime();
     }
@@ -142,5 +233,26 @@ public class ChibiCharacter extends GameObject {
     public void setMovingVector(int movingVectorX, int movingVectorY)  {
         this.movingVectorX= movingVectorX;
         this.movingVectorY = movingVectorY;
+    }
+
+    public void setTouchCoordinates(int X, int Y)  {
+        this.TouchX= X;
+        this.TouchY= Y;
+
+        // X TouchVector length
+        this.XTouchVectorLength = CircleX - X;
+        // Y Touch Vector length
+        this.YTouchVectorLength = CircleY - Y;
+
+        setMovingVector(-this.XTouchVectorLength, -this.YTouchVectorLength);
+
+        this.LengthOfTouchVector = (int)Math.sqrt(XTouchVectorLength * XTouchVectorLength + YTouchVectorLength * YTouchVectorLength); // length of touchvector relative to joystickCentre
+
+        float test = this.JoystickCircleRadius;
+
+        this.JoystickX = (float)((-1)*((test/this.LengthOfTouchVector)*this.XTouchVectorLength))+CircleX;
+        this.JoystickY = (float)((-1)*((test/this.LengthOfTouchVector)*this.YTouchVectorLength))+CircleY;
+
+
     }
 }
